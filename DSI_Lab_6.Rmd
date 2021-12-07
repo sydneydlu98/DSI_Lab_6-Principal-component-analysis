@@ -13,6 +13,8 @@ output:
      smooth_scroll: true
 ---
 
+[My Github link] https://github.com/sydneydlu98/DSI_Lab_6-Principal-component-analysis
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = "center")
 ```
@@ -55,6 +57,7 @@ Next we will visulaize the data.
 * Create density plots colored by group membership of the first three variables in the dataset. Comment on what you observe.
 
 ```{r}
+## correlation of the data
 corrplot::corrplot(
   cor(data, method = 'spearman'),
   method = "color",
@@ -63,6 +66,7 @@ corrplot::corrplot(
   order = "hclust"
 )
 
+## create density plots colored by group membership 
 data_3 <- data %>%
   select(group:X3)
 
@@ -102,6 +106,7 @@ ggplot(data_3,
 new_data <- data %>%
   select(-group)
 
+## Perform PCA on the data
 pca <- prcomp(new_data, center = TRUE, scale. = TRUE)
 
 summary(pca)
@@ -110,8 +115,11 @@ summary(pca)
 * Make a plot of the cumulative variance explained by the PCs.
 
 ```{r}
+## calculate variance explained by the PCs
 eigs <- pca$sdev ^ 2
 var.explained <- eigs / sum(eigs)
+
+## create a plot of the cumulative variance explained by the PCs
 plot(
   cumsum(var.explained),
   main = 'Cummulative Variance Explained',
@@ -130,6 +138,7 @@ pca_scores <- as.data.frame(pca$x)
 pca_scores <- pca_scores %>%
   mutate(group = data$group)
 
+## Make bivariate plots
 ggplot(pca_scores,
        aes(x = PC1,
            y = PC2,
@@ -163,23 +172,26 @@ ggplot(pca_scores,
 * Cluster the original data into 2 clusters using any method that we have learned in this class. Create a contingency matrix with the true cluster labels.
 
 ```{r}
-data_scaled <- scale(data, center = TRUE, scale = TRUE)
+## scale the data
+data_scaled <- scale(new_data, center = TRUE, scale = TRUE)
 
-## select 4 clusters
+## select 2 clusters
 k.means <- kmeans(data_scaled,
                   centers = 2,
                   nstart = 100)
 
-## number of observations in each cluster and each group
+## contigency table of number of observations in each cluster and each group
 table(k.means$cluster, data$group)
 ```
 
 * Rather than performing clustering on the entire data matrix, we can simply perform clustering on the first few principal component score vectors. Sometimes performing clustering on the first few principal component score vectors can give better results than performing clustering on the full data with the results. Repeat the clustering with the first 10 principal component scores and create a contingency matrix.
 
 ```{r}
+## select the first 10 principal component scores
 pca_10 <- pca_scores %>%
   select(PC1:PC10)
 
+## scale this new data set
 pca_10_scaled <- scale(pca_10, center = TRUE, scale = TRUE)
 
 ## select 2 clusters
@@ -187,7 +199,7 @@ k.means_10 <- kmeans(pca_10_scaled,
                      centers = 2,
                      nstart = 100)
 
-## number of observations in each cluster and each group
+## contigency table of number of observations in each cluster and each group
 table(k.means_10$cluster, data$group)
 ```
 
