@@ -1,0 +1,194 @@
+---
+title: "DSI_Lab_6"
+author: "Dingxin Lu"
+date: "12/6/2021"
+output: 
+  html_document:
+   df_print: paged
+   toc: true 
+   toc_depth: 2  
+   number_sections: false
+   toc_float:
+     collapsed: true
+     smooth_scroll: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align = "center")
+```
+
+# Simulate Data
+
+We will begin by simulating some data on which we’ll perform principal component analysis (PCA) and clustering. Use the following code to simulate data for this exercise. We will be simulating data from two groups.
+
+```{r}
+## load in required libraries 
+library(hbim)
+library(mvtnorm)
+library(dplyr)
+library(ggplot2)
+
+## set a seed for reproducibility
+set.seed(12345)
+
+## create an exchangeable variance covariance for the data
+sigma <- make.v(n = 100, r = .6, sig2 = 1)
+
+## create centers for the two clusters. 
+center_1 <- rep(1, 100)
+center_2 <- rep(3, 100)
+
+## simulate data for two groups from a multivariate normal distribution 
+data <- rbind(rmvnorm(50, mean = center_1, sigma = sigma),
+             rmvnorm(50, mean = center_2, sigma = sigma))
+
+## add a group label to the data 
+data <- data.frame(group = c(rep(1, 50), rep(2, 50)),
+                  data) 
+```
+
+# Visualize the Data
+
+Next we will visulaize the data.
+
+* Look at the correlation of the data using corrplot::corrplot. Comment on what you observe.
+* Create density plots colored by group membership of the first three variables in the dataset. Comment on what you observe.
+
+```{r}
+corrplot::corrplot(
+  cor(data, method = 'spearman'),
+  method = "color",
+  tl.cex = .5,
+  tl.col = "black",
+  order = "hclust"
+)
+
+data_3 <- data %>%
+  select(group:X3)
+
+ggplot(data_3,
+       aes(x = X1,
+           group = group,
+           fill = group)) +
+  geom_density(aes(alpha = 0.5)) +
+  ggtitle("Density plot colored by group membership of the first variable") +
+  theme(plot.title = element_text(hjust = 0.5,
+                                  size = 16))
+
+ggplot(data_3,
+       aes(x = X2,
+           group = group,
+           fill = group)) +
+  geom_density(aes(alpha = 0.5)) +
+  ggtitle("Density plot colored by group membership of the second variable") +
+  theme(plot.title = element_text(hjust = 0.5,
+                                  size = 16))
+
+ggplot(data_3,
+       aes(x = X3,
+           group = group,
+           fill = group)) +
+  geom_density(aes(alpha = 0.5)) +
+  ggtitle("Density plot colored by group membership of the third variable") +
+  theme(plot.title = element_text(hjust = 0.5,
+                                  size = 16))
+```
+
+# Perform PCA
+
+* Perform PCA on the data.
+
+```{r}
+new_data <- data %>%
+  select(-group)
+
+pca <- prcomp(new_data, center = TRUE, scale. = TRUE)
+
+summary(pca)
+```
+
+* Make a plot of the cumulative variance explained by the PCs.
+
+```{r}
+eigs <- pca$sdev ^ 2
+var.explained <- eigs / sum(eigs)
+plot(
+  cumsum(var.explained),
+  main = 'Cummulative Variance Explained',
+  ylab = 'Cummulative Variance Explained',
+  xlab = 'Number of PCs'
+)
+```
+
+* Make bivariate plots of all combinations of the scores on the first, second, and third PC (PC1 vs. PC2, PC1 vs. PC3, PC2 vs. PC3) colored by group membership.
+
+```{r}
+## make the data frame for the scores on the PCs
+pca_scores <- as.data.frame(pca$x)
+
+## add 2 columns to make the plots
+pca_scores <- pca_scores %>%
+  mutate(group = data$group)
+
+ggplot(pca_scores,
+       aes(x = PC1,
+           y = PC2,
+           col = as.factor(group))) +
+  geom_point() +
+  ggtitle("PC1 versus PC2") +
+  theme(plot.title = element_text(hjust = 0.5,
+                                  size = 16))
+
+ggplot(pca_scores,
+       aes(x = PC1,
+           y = PC3,
+           col = as.factor(group))) +
+  geom_point() +
+  ggtitle("PC1 versus PC3") +
+  theme(plot.title = element_text(hjust = 0.5,
+                                  size = 16))
+
+ggplot(pca_scores,
+       aes(x = PC2,
+           y = PC3,
+           col = as.factor(group))) +
+  geom_point() +
+  ggtitle("PC2 versus PC3") +
+  theme(plot.title = element_text(hjust = 0.5,
+                                  size = 16))
+```
+
+# Cluster
+
+* Cluster the original data into 2 clusters using any method that we have learned in this class. Create a contingency matrix with the true cluster labels.
+
+```{r}
+data_scaled <- scale(data, center = TRUE, scale = TRUE)
+
+## select 4 clusters
+k.means <- kmeans(data_scaled,
+                  centers = 2,
+                  nstart = 100)
+
+## number of observations in each cluster and each group
+table(k.means$cluster, data$group)
+```
+
+* Rather than performing clustering on the entire data matrix, we can simply perform clustering on the first few principal component score vectors. Sometimes performing clustering on the first few principal component score vectors can give better results than performing clustering on the full data with the results. Repeat the clustering with the first 10 principal component scores and create a contingency matrix.
+
+```{r}
+pca_10 <- pca_scores %>%
+  select(PC1:PC10)
+
+pca_10_scaled <- scale(pca_10, center = TRUE, scale = TRUE)
+
+## select 2 clusters
+k.means_10 <- kmeans(pca_10_scaled,
+                     centers = 2,
+                     nstart = 100)
+
+## number of observations in each cluster and each group
+table(k.means_10$cluster, data$group)
+```
+
+* Comment on what you observe.
