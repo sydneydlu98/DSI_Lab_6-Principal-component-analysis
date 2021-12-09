@@ -61,7 +61,6 @@ corrplot::corrplot(
   cor(data, 
       method = 'spearman'),
   method = 'shade',
-  type = 'upper',
   tl.cex = 0.6,
   order = "hclust",
   tl.col = 'black',
@@ -69,7 +68,7 @@ corrplot::corrplot(
 )
 ```
 
-**From the correlation plot of the data, we can see all these 100 variables (X1 to X100) have perfect positive correlation with each other, as all the correlation coefficients are 1.**
+**From the correlation plot of the data, we can see that all these 100 variables (X1 to X100) have very high positive correlations with each other, meaning they all have correlation coefficients of 1, 0.9, 0.8 and 0.7 with each other. It tells us that these 100 variables are highly correlated with each other.**
 
 * Create density plots colored by group membership of the first three variables in the data set. Comment on what you observe.
 ```{r}
@@ -83,8 +82,9 @@ ggplot(data_3,
            group = group,
            fill = as.factor(group))) +
   geom_density(aes(alpha = 0.5)) +
-  ggtitle("Density plot of X1") +
+  ggtitle("Density plot of X1 colored by group membership") +
   labs(fill = "group") +
+  guides(alpha = FALSE) +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
 
@@ -93,8 +93,9 @@ ggplot(data_3,
            group = group,
            fill = as.factor(group))) +
   geom_density(aes(alpha = 0.5)) +
-  ggtitle("Density plot of X2") +
+  ggtitle("Density plot of X2 colored by group membership") +
   labs(fill = "group") +
+  guides(alpha = FALSE) +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
 
@@ -104,12 +105,13 @@ ggplot(data_3,
            fill = as.factor(group))) +
   geom_density(aes(alpha = 0.5)) +
   labs(fill = "group") +
-  ggtitle("Density plot of X3") +
+  guides(alpha = FALSE) +
+  ggtitle("Density plot of X3 colored by group membership") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
 ```
 
-**These 3 plots all look roughly similar to each other, there are small discrepancies among them but overall they all have similar distributions and have similar areas that overlap with each group. It means values in X1, X2 and X3 are very similar to each other.**
+**These 3 plots all look roughly similar to each other, there are small discrepancies among them but overall they all have similar distributions and have similar areas that overlap with each group. It means values between 2 groups in X1, X2 and X3 are very similar to each other.**
 
 **However, we can notice that for all plots of X1, X2 and X3, distributions for group 1 are all slightly right skewed and distributions for group 2 are all left skewed.**
 
@@ -239,4 +241,6 @@ table(cluster = k.means_10$cluster,
 
 * Comment on what you observe.
 
-**Clearly after clustering with the first 10 principal component scores, the contingency matrix seems more "balanced" as number of each cluster in each group are roughly around 25. It mean, roughly around 25 observations are correctly classified in each group. Comparing to much lower number of observations being correctly classified in each group in the previous contingency table, we can conclude that performing clustering on the first few principal component score vectors can give better results than performing clustering on the full data with the results.**
+**Clearly after clustering with the first 10 principal component scores, the contingency matrix seems more "balanced" as number of each cluster in each group are roughly around 25. It means, roughly around 25 observations are correctly classified in each group. It actually shows a worse result as less observations are being correctly classified. **
+
+**In conclusion, sometimes performing clustering on the first few principal component score vectors can give better results than performing clustering on the full data with the results. However, in our case it is not true, it is actually better to perform clustering on the full data.**
