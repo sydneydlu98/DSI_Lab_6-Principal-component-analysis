@@ -55,7 +55,7 @@ Next we will visulaize the data.
 
 * Look at the correlation of the data using corrplot::corrplot. Comment on what you observe.
 
-```{r, fig.height=10, fig.width=10}
+```{r}
 ## plot the correlation of the data
 corrplot::corrplot(
   cor(data, 
@@ -64,7 +64,7 @@ corrplot::corrplot(
   type = 'upper',
   tl.cex = 0.6,
   order = "hclust",
-  tl.col = 'black'，
+  tl.col = 'black',
   tl.srt = 90
 )
 ```
@@ -83,7 +83,8 @@ ggplot(data_3,
            group = group,
            fill = as.factor(group))) +
   geom_density(aes(alpha = 0.5)) +
-  ggtitle("Density plot of the first variable") +
+  ggtitle("Density plot of X1") +
+  labs(fill = "group") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
 
@@ -92,7 +93,8 @@ ggplot(data_3,
            group = group,
            fill = as.factor(group))) +
   geom_density(aes(alpha = 0.5)) +
-  ggtitle("Density plot of the second variable") +
+  ggtitle("Density plot of X2") +
+  labs(fill = "group") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
 
@@ -101,12 +103,15 @@ ggplot(data_3,
            group = group,
            fill = as.factor(group))) +
   geom_density(aes(alpha = 0.5)) +
-  ggtitle("Density plot of the third variable") +
+  labs(fill = "group") +
+  ggtitle("Density plot of X3") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
 ```
 
 **These 3 plots all look roughly similar to each other, there are small discrepancies among them but overall they all have similar distributions and have similar areas that overlap with each group. It means values in X1, X2 and X3 are very similar to each other.**
+
+**However, we can notice that for all plots of X1, X2 and X3, distributions for group 1 are all slightly right skewed and distributions for group 2 are all left skewed.**
 
 # Perform PCA
 
@@ -121,8 +126,6 @@ new_data <- data %>%
 pca <- prcomp(new_data, 
               center = TRUE, 
               scale. = TRUE)
-
-summary(pca)
 ```
 
 * Make a plot of the cumulative variance explained by the PCs.
@@ -158,6 +161,7 @@ ggplot(pca_scores,
            y = PC2,
            col = as.factor(group))) +
   geom_point() +
+  labs(col = "group") +
   ggtitle("PC1 versus PC2") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
@@ -168,6 +172,7 @@ ggplot(pca_scores,
            y = PC3,
            col = as.factor(group))) +
   geom_point() +
+  labs(col = "group") +
   ggtitle("PC1 versus PC3") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
@@ -178,6 +183,7 @@ ggplot(pca_scores,
            y = PC3,
            col = as.factor(group))) +
   geom_point() +
+  labs(col = "group") +
   ggtitle("PC2 versus PC3") +
   theme(plot.title = element_text(hjust = 0.5,
                                   size = 16))
@@ -188,6 +194,7 @@ ggplot(pca_scores,
 * Cluster the original data into 2 clusters using any method that we have learned in this class. Create a contingency matrix with the true cluster labels.
 
 ```{r}
+## set seed
 set.seed(12345)
 
 ## scale the filtered data
@@ -208,6 +215,7 @@ table(cluster = k.means$cluster,
 * Rather than performing clustering on the entire data matrix, we can simply perform clustering on the first few principal component score vectors. Sometimes performing clustering on the first few principal component score vectors can give better results than performing clustering on the full data with the results. Repeat the clustering with the first 10 principal component scores and create a contingency matrix.
 
 ```{r}
+## set seed
 set.seed(12345)
 
 ## select the first 10 principal component scores
